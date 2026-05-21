@@ -1277,31 +1277,48 @@ async function autoSyncToGithub() {
     const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
     let sha = null;
     
+    // First, GET the current file to get its SHA
     try {
       const getRes = await fetch(getUrl, {
-        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' }
+        headers: { 
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
       });
+      
       if (getRes.ok) {
         const data = await getRes.json();
         sha = data.sha;
+        console.log('Auto-sync: Got SHA from GitHub');
+      } else if (getRes.status === 404) {
+        console.log('Auto-sync: File does not exist yet, will create');
       }
     } catch (e) {
-      console.log('Auto-sync: Getting SHA failed, will create new file');
+      console.log('Auto-sync: Could not get file info:', e.message);
     }
     
+    // Now prepare the content
     const html = document.documentElement.outerHTML
       .replace(/let recipes = \[[\s\S]*?\];\n\nlet categories/, `let recipes = ${JSON.stringify(recipes, null, 2)};\n\nlet categories`)
       .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
     
     const content = btoa(unescape(encodeURIComponent(html)));
     
+    // Build the request body
     const body = {
       message: `Auto-sync: Updated recipes - ${new Date().toLocaleString()}`,
       content: content
     };
     
-    if (sha) body.sha = sha;
+    // IMPORTANT: Only add sha if we got one
+    if (sha) {
+      body.sha = sha;
+      console.log('Auto-sync: Using SHA for update');
+    } else {
+      console.log('Auto-sync: Creating new file (no SHA)');
+    }
     
+    // Push to GitHub
     const pushRes = await fetch(getUrl, {
       method: 'PUT',
       headers: {
@@ -1313,9 +1330,10 @@ async function autoSyncToGithub() {
     
     if (pushRes.ok) {
       localStorage.setItem('lastSyncTime', new Date().toISOString());
-      console.log('Auto-sync: Successfully pushed to GitHub');
+      console.log('Auto-sync: ✓ Successfully pushed to GitHub');
     } else {
-      console.log('Auto-sync: Push failed', await pushRes.text());
+      const errText = await pushRes.text();
+      console.log('Auto-sync: Push failed', errText);
     }
   } catch (e) {
     console.log('Auto-sync error:', e.message);
