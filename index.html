@@ -1064,6 +1064,14 @@ function saveRecipe() {
   renderTabs(); renderGrid();
   showToast(editingId ? 'Recipe Updated' : 'Recipe Added', 'Save your book to keep changes.');
   editingId = null;
+  
+  // Auto-sync to GitHub if configured
+  setTimeout(() => {
+    const ghUsername = localStorage.getItem('gh_username');
+    if (ghUsername) {
+      autoSyncToGithub();
+    }
+  }, 500);
 }
 
 // ─────────────────────────────────────────────
@@ -1249,9 +1257,121 @@ function exportBook() {
     .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-  a.download = 'recipe-book.html';
+  a.download = 'VeraSofia_Recipe-Book.html';
   a.click();
   document.getElementById('saveToast').classList.remove('show');
+}
+
+// ─────────────────────────────────────────────
+//  GITHUB AUTO-SYNC
+// ─────────────────────────────────────────────
+
+async function autoSyncToGithub() {
+  const username = localStorage.getItem('gh_username');
+  const repo = localStorage.getItem('gh_repo');
+  const token = localStorage.getItem('gh_token');
+  
+  if (!username || !repo || !token) return;
+  
+  try {
+    const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
+    let sha = null;
+    
+    try {
+      const getRes = await fetch(getUrl, {
+        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' }
+      });
+      if (getRes.ok) {
+        const data = await getRes.json();
+        sha = data.sha;
+      }
+    } catch (e) {
+      console.log('Auto-sync: Getting SHA failed, will create new file');
+    }
+    
+    const html = document.documentElement.outerHTML
+      .replace(/let recipes = \[[\s\S]*?\];\n\nlet categories/, `let recipes = ${JSON.stringify(recipes, null, 2)};\n\nlet categories`)
+      .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
+    
+    const content = btoa(unescape(encodeURIComponent(html)));
+    
+    const body = {
+      message: `Auto-sync: Updated recipes - ${new Date().toLocaleString()}`,
+      content: content
+    };
+    
+    if (sha) body.sha = sha;
+    
+    const pushRes = await fetch(getUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    
+    if (pushRes.ok) {
+      localStorage.setItem('lastSyncTime', new Date().toISOString());
+      console.log('Auto-sync: Successfully pushed to GitHub');
+    } else {
+      console.log('Auto-sync: Push failed', await pushRes.text());
+    }
+  } catch (e) {
+    console.log('Auto-sync error:', e.message);
+  }
+}
+
+async function autoLoadFromGithub() {
+  const username = localStorage.getItem('gh_username');
+  const repo = localStorage.getItem('gh_repo');
+  const token = localStorage.getItem('gh_token');
+  
+  if (!username || !repo || !token) {
+    console.log('GitHub not configured');
+    return;
+  }
+  
+  try {
+    const url = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
+    const res = await fetch(url, {
+      headers: { 
+        'Authorization': `token ${token}`, 
+        'Accept': 'application/vnd.github.v3.raw' 
+      }
+    });
+    
+    if (!res.ok) {
+      console.log('Auto-load: File not found on GitHub');
+      return;
+    }
+    
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const scripts = doc.getElementsByTagName('script');
+    
+    for (let script of scripts) {
+      if (script.textContent.includes('let recipes = ')) {
+        const recipesMatch = script.textContent.match(/let recipes = (\[[\s\S]*?\]);/);
+        const categoriesMatch = script.textContent.match(/let categories = (\[[\s\S]*?\]);/);
+        
+        if (recipesMatch && categoriesMatch) {
+          recipes = JSON.parse(recipesMatch[1]);
+          categories = JSON.parse(categoriesMatch[1]);
+          renderTabs();
+          renderGrid();
+          renderShoppingPanel();
+          console.log('Auto-load: Loaded ' + recipes.length + ' recipes from GitHub');
+          return;
+        }
+      }
+    }
+    
+    console.log('Auto-load: Could not parse recipes');
+  } catch (e) {
+    console.log('Auto-load error:', e.message);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -1260,6 +1380,7 @@ function exportBook() {
 renderTabs();
 renderGrid();
 renderShoppingPanel();
+autoLoadFromGithub();
 </script>
 
 
