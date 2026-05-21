@@ -294,10 +294,10 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
 <div class="tabs-bar" id="tabsBar">
   <div class="tabs-inner" id="tabsInner">
       <button class="tab-btn active" onclick="setTab('All')">
-        All&nbsp;<span class="tab-count">6</span>
+        All&nbsp;<span class="tab-count">7</span>
       </button>
       <button class="tab-btn " onclick="setTab('Breakfast')">
-        Breakfast&nbsp;<span class="tab-count">2</span>
+        Breakfast&nbsp;<span class="tab-count">3</span>
       </button>
       <button class="tab-btn " onclick="setTab('Lunch')">
         Lunch&nbsp;<span class="tab-count">1</span>
@@ -317,7 +317,7 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
 <main class="main">
   <div class="section-header">
     <h2 class="section-title" id="sectionTitle">All Recipes</h2>
-    <span class="section-meta" id="recipeCount">6 Recipes</span>
+    <span class="section-meta" id="recipeCount">7 Recipes</span>
   </div>
   <div class="recipe-grid" id="recipeGrid">
     <div class="recipe-card" onclick="viewRecipe(1)">
@@ -427,6 +427,24 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
           <div class="card-stat"><div class="stat-label">Ingr.</div><div class="stat-val">11</div></div>
         </div>
       </div>
+    </div>
+    <div class="recipe-card" onclick="viewRecipe(10)">
+      
+      <div class="card-top">
+        <div class="card-number">07</div>
+        <div class="card-emoji">🍽️</div>
+      </div>
+      <div class="card-body">
+        <div class="card-category">Breakfast</div>
+        <div class="card-name">egg</div>
+        
+        <div class="card-divider"></div>
+        <div class="card-stats">
+          <div class="card-stat"><div class="stat-label">Time</div><div class="stat-val">egg</div></div>
+          <div class="card-stat"><div class="stat-label">Serves</div><div class="stat-val">egg</div></div>
+          <div class="card-stat"><div class="stat-label">Ingr.</div><div class="stat-val">1</div></div>
+        </div>
+      </div>
     </div></div>
 </main>
 
@@ -487,8 +505,8 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
   <div class="form-modal">
     <div class="form-header">
       <div>
-        <div class="form-header-label" id="formLabel">Edit Recipe</div>
-        <h2 id="formTitle">Bolognese Sauce</h2>
+        <div class="form-header-label" id="formLabel">New Recipe</div>
+        <h2 id="formTitle">Add to Collection</h2>
       </div>
       <button class="modal-close" style="position:static;" onclick="document.getElementById('addOverlay').classList.remove('open')">✕</button>
     </div>
@@ -560,7 +578,7 @@ Meanwhile, warm olive oil over medium heat."></textarea>
     </div>
     <div class="form-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('addOverlay').classList.remove('open')">Cancel</button>
-      <button class="btn btn-black" id="formSaveBtn" onclick="saveRecipe()">Update Recipe</button>
+      <button class="btn btn-black" id="formSaveBtn" onclick="saveRecipe()">Save Recipe</button>
     </div>
   </div>
 </div>
@@ -627,14 +645,14 @@ Meanwhile, warm olive oil over medium heat."></textarea>
       <div id="syncStatus"><div class="gp-status error">Pushing to GitHub...</div></div>
       <button class="btn btn-black" style="width:100%;justify-content:center" id="pushBtn" onclick="pushToGithub()" disabled="">↑ Push to GitHub</button>
       <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px" id="pullBtn" onclick="pullFromGithub()">↓ Pull from GitHub</button>
-      <p style="font-size:0.72rem;color:var(--mid-grey);margin-top:12px;line-height:1.5;text-align:center">Last synced: <span id="lastSync">21/05/2026, 15:49:30</span></p>
+      <p style="font-size:0.72rem;color:var(--mid-grey);margin-top:12px;line-height:1.5;text-align:center">Last synced: <span id="lastSync">21/05/2026, 15:49:39</span></p>
     </div>
   </div>
 </div>
 
 <!-- SAVE TOAST -->
 <div class="save-toast" id="saveToast">
-  <div class="toast-text"><strong id="toastTitle">Recipe Updated</strong><span id="toastMsg">Save your book to keep changes.</span></div>
+  <div class="toast-text"><strong id="toastTitle">Recipe Added</strong><span id="toastMsg">Save your book to keep changes.</span></div>
   <button class="btn btn-black btn-sm" onclick="exportBook()">↓ Save File</button>
   <button onclick="document.getElementById('saveToast').classList.remove('show')" style="background:none;border:none;color:#666;cursor:pointer;font-size:0.9rem;padding:0 0 0 4px">✕</button>
 </div>
@@ -847,6 +865,24 @@ let recipes = [
       "Once cooked, add a teaspoon of sugar, pinch of bicarb soda (if sour), the other half of the basil, and adjust salt & pepper if needed."
     ],
     "notes": "For larger quantity: - 1kg mince beef - 2 onions - 5 garlic cloves - 2 carrots - 3 celery sticks - Basil - Parmesan rind - 1 glass red wine - 1 cube beef stock - 1 can diced tomatoes - 2 jars passata"
+  },
+  {
+    "id": 10,
+    "emoji": "🍽️",
+    "name": "egg",
+    "category": "Breakfast",
+    "time": "egg",
+    "servings": "egg",
+    "tags": [],
+    "videoUrl": "",
+    "imageData": "",
+    "ingredients": [
+      "egg"
+    ],
+    "steps": [
+      "egg"
+    ],
+    "notes": ""
   }
 ];
 
