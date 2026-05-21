@@ -294,10 +294,10 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
 <div class="tabs-bar" id="tabsBar">
   <div class="tabs-inner" id="tabsInner">
       <button class="tab-btn active" onclick="setTab('All')">
-        All&nbsp;<span class="tab-count">6</span>
+        All&nbsp;<span class="tab-count">8</span>
       </button>
       <button class="tab-btn " onclick="setTab('Breakfast')">
-        Breakfast&nbsp;<span class="tab-count">2</span>
+        Breakfast&nbsp;<span class="tab-count">4</span>
       </button>
       <button class="tab-btn " onclick="setTab('Lunch')">
         Lunch&nbsp;<span class="tab-count">1</span>
@@ -317,7 +317,7 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
 <main class="main">
   <div class="section-header">
     <h2 class="section-title" id="sectionTitle">All Recipes</h2>
-    <span class="section-meta" id="recipeCount">6 Recipes</span>
+    <span class="section-meta" id="recipeCount">8 Recipes</span>
   </div>
   <div class="recipe-grid" id="recipeGrid">
     <div class="recipe-card" onclick="viewRecipe(1)">
@@ -427,6 +427,42 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
           <div class="card-stat"><div class="stat-label">Ingr.</div><div class="stat-val">11</div></div>
         </div>
       </div>
+    </div>
+    <div class="recipe-card" onclick="viewRecipe(10)">
+      
+      <div class="card-top">
+        <div class="card-number">07</div>
+        <div class="card-emoji">🍽️</div>
+      </div>
+      <div class="card-body">
+        <div class="card-category">Breakfast</div>
+        <div class="card-name">noodles</div>
+        <div class="card-tags"><span class="card-tag">quick</span><span class="card-tag">lunch</span></div>
+        <div class="card-divider"></div>
+        <div class="card-stats">
+          <div class="card-stat"><div class="stat-label">Time</div><div class="stat-val">10</div></div>
+          <div class="card-stat"><div class="stat-label">Serves</div><div class="stat-val">1</div></div>
+          <div class="card-stat"><div class="stat-label">Ingr.</div><div class="stat-val">3</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-card" onclick="viewRecipe(11)">
+      
+      <div class="card-top">
+        <div class="card-number">08</div>
+        <div class="card-emoji">🍽️</div>
+      </div>
+      <div class="card-body">
+        <div class="card-category">Breakfast</div>
+        <div class="card-name">111111</div>
+        
+        <div class="card-divider"></div>
+        <div class="card-stats">
+          
+          
+          <div class="card-stat"><div class="stat-label">Ingr.</div><div class="stat-val">3</div></div>
+        </div>
+      </div>
     </div></div>
 </main>
 
@@ -464,9 +500,9 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
     <li class="step-item"><span class="step-n">06</span><span class="step-text">Leave uncovered and cook for a minimum of of 2 hours. Keep checking the sauce in case it needs more water to continue cooking.</span></li>
     <li class="step-item"><span class="step-n">07</span><span class="step-text">Once cooked, add a teaspoon of sugar, pinch of bicarb soda (if sour), the other half of the basil, and adjust salt &amp; pepper if needed.</span></li></ul>
       </div>
-      <div class="modal-section" id="viewNotesSection" style="display:none">
+      <div class="modal-section" id="viewNotesSection" style="">
         <div class="modal-section-label">Notes</div>
-        <p class="notes-text" id="viewNotes"></p>
+        <p class="notes-text" id="viewNotes">For larger quantity: - 1kg mince beef - 2 onions - 5 garlic cloves - 2 carrots - 3 celery sticks - Basil - Parmesan rind - 1 glass red wine - 1 cube beef stock - 1 can diced tomatoes - 2 jars passata</p>
       </div>
       <div class="modal-footer">
         <div class="modal-footer-left">
@@ -487,8 +523,8 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
   <div class="form-modal">
     <div class="form-header">
       <div>
-        <div class="form-header-label" id="formLabel">Edit Recipe</div>
-        <h2 id="formTitle">Bolognese Sauce</h2>
+        <div class="form-header-label" id="formLabel">New Recipe</div>
+        <h2 id="formTitle">Add to Collection</h2>
       </div>
       <button class="modal-close" style="position:static;" onclick="document.getElementById('addOverlay').classList.remove('open')">✕</button>
     </div>
@@ -560,7 +596,7 @@ Meanwhile, warm olive oil over medium heat."></textarea>
     </div>
     <div class="form-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('addOverlay').classList.remove('open')">Cancel</button>
-      <button class="btn btn-black" id="formSaveBtn" onclick="saveRecipe()">Update Recipe</button>
+      <button class="btn btn-black" id="formSaveBtn" onclick="saveRecipe()">Save Recipe</button>
     </div>
   </div>
 </div>
@@ -619,22 +655,24 @@ Meanwhile, warm olive oil over medium heat."></textarea>
         1. Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings</a><br>
         2. Create a "Personal Access Token"<br>
         3. Give it "repo" permissions<br>
-        4. Copy & paste it above
+        4. Copy &amp; paste it above
       </div>
     </div>
-    <div class="gp-section" id="syncSection" style="display:none">
+    <div class="gp-section" id="syncSection" style="">
       <h3>Sync</h3>
-      <div id="syncStatus"></div>
+      <div id="syncStatus"><div class="gp-status error">Push failed: Invalid request.
+
+"sha" wasn't supplied.</div></div>
       <button class="btn btn-black" style="width:100%;justify-content:center" id="pushBtn" onclick="pushToGithub()">↑ Push to GitHub</button>
       <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px" id="pullBtn" onclick="pullFromGithub()">↓ Pull from GitHub</button>
-      <p style="font-size:0.72rem;color:var(--mid-grey);margin-top:12px;line-height:1.5;text-align:center">Last synced: <span id="lastSync">Never</span></p>
+      <p style="font-size:0.72rem;color:var(--mid-grey);margin-top:12px;line-height:1.5;text-align:center">Last synced: <span id="lastSync">21/05/2026, 16:12:52</span></p>
     </div>
   </div>
 </div>
 
 <!-- SAVE TOAST -->
-<div class="save-toast" id="saveToast">
-  <div class="toast-text"><strong id="toastTitle">Recipe Updated</strong><span id="toastMsg">Save your book to keep changes.</span></div>
+<div class="save-toast show" id="saveToast">
+  <div class="toast-text"><strong id="toastTitle">Recipe Added</strong><span id="toastMsg">Save your book to keep changes.</span></div>
   <button class="btn btn-black btn-sm" onclick="exportBook()">↓ Save File</button>
   <button onclick="document.getElementById('saveToast').classList.remove('show')" style="background:none;border:none;color:#666;cursor:pointer;font-size:0.9rem;padding:0 0 0 4px">✕</button>
 </div>
@@ -847,6 +885,55 @@ let recipes = [
       "Once cooked, add a teaspoon of sugar, pinch of bicarb soda (if sour), the other half of the basil, and adjust salt & pepper if needed."
     ],
     "notes": "For larger quantity: - 1kg mince beef - 2 onions - 5 garlic cloves - 2 carrots - 3 celery sticks - Basil - Parmesan rind - 1 glass red wine - 1 cube beef stock - 1 can diced tomatoes - 2 jars passata"
+  },
+  {
+    "id": 10,
+    "emoji": "🍽️",
+    "name": "noodles",
+    "category": "Breakfast",
+    "time": "10",
+    "servings": "1",
+    "tags": [
+      "quick",
+      "lunch"
+    ],
+    "videoUrl": "",
+    "imageData": "",
+    "ingredients": [
+      "noodles",
+      "soup base",
+      "protein"
+    ],
+    "steps": [
+      "brign water to a boil",
+      "blanch veggies. set aside",
+      "add soup base",
+      "add protein",
+      "enjoy!"
+    ],
+    "notes": ""
+  },
+  {
+    "id": 11,
+    "emoji": "🍽️",
+    "name": "111111",
+    "category": "Breakfast",
+    "time": "",
+    "servings": "",
+    "tags": [],
+    "videoUrl": "",
+    "imageData": "",
+    "ingredients": [
+      "1111",
+      "111",
+      "22"
+    ],
+    "steps": [
+      "1111",
+      "222",
+      "111"
+    ],
+    "notes": ""
   }
 ];
 
@@ -1596,6 +1683,7 @@ renderGrid();
 renderShoppingPanel();
 autoLoadFromGithub();
 </script>
+
 
 
 </body></html>
