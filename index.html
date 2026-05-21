@@ -265,7 +265,7 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
     <div class="header-actions">
       <button class="hbtn hbtn-ghost" onclick="toggleShoppingPanel()" title="Shopping List">🛒 <span class="btn-text">List</span></button>
       <button class="hbtn hbtn-primary" onclick="openAddModal()">+ <span class="btn-text">New Recipe</span></button>
-      <button class="hbtn hbtn-ghost" onclick="promptGithubSetup()" title="Setup GitHub Sync">⚙ <span class="btn-text">Sync</span></button>
+      <button class="hbtn hbtn-ghost" onclick="openGithubPanel()" title="GitHub Sync">⚙ <span class="btn-text">Sync</span></button>
       <button class="hbtn hbtn-ghost" onclick="exportBook()" title="Save as HTML">↓ <span class="btn-text">Save</span></button>
     </div>
   </div>
@@ -578,6 +578,43 @@ Meanwhile, warm olive oil over medium heat."></textarea>
     <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="clearShoppingList()">Clear List</button>
     <p class="sp-note">Tapping "Export to iPhone Notes" will open the Notes app with your list pre-filled.</p>
   </div>
+</div>
+
+<!-- GITHUB PANEL -->
+<div id="githubPanel" style="display:none; position:fixed; top:0; right:0; bottom:0; width:400px; background:white; border-left:1px solid #ddd; z-index:300; padding:20px; overflow-y:auto; box-shadow:-2px 0 10px rgba(0,0,0,0.1);">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h3 style="margin:0;">GitHub Sync</h3>
+    <button onclick="closeGithubPanel()" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+  </div>
+  
+  <div style="margin-bottom:20px;">
+    <label style="font-size:12px; color:#666; text-transform:uppercase;">GitHub Username</label>
+    <input type="text" id="gh_user" placeholder="e.g. verasofia91" style="width:100%; padding:8px; border:1px solid #ddd; margin-top:5px;">
+  </div>
+  
+  <div style="margin-bottom:20px;">
+    <label style="font-size:12px; color:#666; text-transform:uppercase;">Repository Name</label>
+    <input type="text" id="gh_repo" placeholder="e.g. recipe-book" style="width:100%; padding:8px; border:1px solid #ddd; margin-top:5px;">
+  </div>
+  
+  <div style="margin-bottom:20px;">
+    <label style="font-size:12px; color:#666; text-transform:uppercase;">Personal Access Token</label>
+    <input type="password" id="gh_token" placeholder="Your GitHub token" style="width:100%; padding:8px; border:1px solid #ddd; margin-top:5px;">
+  </div>
+  
+  <button onclick="saveGithubSettings()" style="width:100%; padding:10px; background:#000; color:white; border:none; cursor:pointer; margin-bottom:10px;">Save Settings</button>
+  
+  <div id="ghStatus" style="padding:10px; background:#f5f5f5; border-radius:4px; margin-bottom:10px; font-size:12px; min-height:30px;"></div>
+  
+  <button id="pushBtn" onclick="githubPush()" style="width:100%; padding:10px; background:#000; color:white; border:none; cursor:pointer; margin-bottom:10px;">↑ Push to GitHub</button>
+  <button id="pullBtn" onclick="githubPull()" style="width:100%; padding:10px; background:#333; color:white; border:none; cursor:pointer;">↓ Pull from GitHub</button>
+  
+  <p style="font-size:11px; color:#999; margin-top:20px; line-height:1.6;">
+    <strong>How it works:</strong><br>
+    1. Enter your GitHub username, repo name, and personal access token<br>
+    2. Click "Push to GitHub" to save your recipes<br>
+    3. Click "Pull from GitHub" on another device to load them
+  </p>
 </div>
 
 <!-- SAVE TOAST -->
@@ -1254,137 +1291,87 @@ function exportBook() {
   document.getElementById('saveToast').classList.remove('show');
 }
 
-// ─────────────────────────────────────────────
-//  GITHUB AUTO-SYNC
-// ─────────────────────────────────────────────
+// GitHub Sync Functions
+function openGithubPanel() {
+  document.getElementById('githubPanel').style.display = 'block';
+  loadGithubSettings();
+}
 
-function promptGithubSetup() {
-  const username = localStorage.getItem('gh_username');
-  const repo = localStorage.getItem('gh_repo');
-  const token = localStorage.getItem('gh_token');
+function closeGithubPanel() {
+  document.getElementById('githubPanel').style.display = 'none';
+}
+
+function saveGithubSettings() {
+  const user = document.getElementById('gh_user').value.trim();
+  const repo = document.getElementById('gh_repo').value.trim();
+  const token = document.getElementById('gh_token').value.trim();
   
-  if (username && repo && token) {
-    const choice = confirm('GitHub is configured!\n\n' + username + '/' + repo + '\n\nClick OK to manually push recipes to GitHub now.\n\nClick Cancel to reconfigure.');
-    if (choice) {
-      manualPushToGithub();
-    } else {
-      reconfigureGithub();
-    }
+  if (!user || !repo || !token) {
+    setGithubStatus('Please fill in all fields', 'error');
     return;
   }
   
-  reconfigureGithub();
+  localStorage.setItem('gh_user', user);
+  localStorage.setItem('gh_repo', repo);
+  localStorage.setItem('gh_token', token);
+  
+  setGithubStatus('✓ Settings saved!', 'success');
 }
 
-function reconfigureGithub() {
-  const newUsername = prompt('Enter your GitHub username:');
-  if (!newUsername) return;
-  
-  const newRepo = prompt('Enter your repository name (e.g., recipe-book):');
-  if (!newRepo) return;
-  
-  const newToken = prompt('Enter your Personal Access Token:\n\n(GitHub Settings > Developer Settings > Personal Access Tokens > Generate New Token with "repo" permission)');
-  if (!newToken) return;
-  
-  localStorage.setItem('gh_username', newUsername);
-  localStorage.setItem('gh_repo', newRepo);
-  localStorage.setItem('gh_token', newToken);
-  
-  alert('✓ Configuration saved!\n\nClick the ⚙ Sync button to manually push your recipes to GitHub.');
-  console.log('GitHub configured:', newUsername + '/' + newRepo);
+function loadGithubSettings() {
+  document.getElementById('gh_user').value = localStorage.getItem('gh_user') || '';
+  document.getElementById('gh_repo').value = localStorage.getItem('gh_repo') || '';
+  document.getElementById('gh_token').value = localStorage.getItem('gh_token') || '';
 }
 
-async function manualPushToGithub() {
-  const username = localStorage.getItem('gh_username');
+function setGithubStatus(msg, type) {
+  const el = document.getElementById('ghStatus');
+  el.textContent = msg;
+  el.style.color = type === 'error' ? '#c0392b' : '#27ae60';
+}
+
+async function githubPush() {
+  const user = localStorage.getItem('gh_user');
   const repo = localStorage.getItem('gh_repo');
   const token = localStorage.getItem('gh_token');
   
-  if (!username || !repo || !token) {
-    alert('GitHub not configured. Click the ⚙ Sync button to set it up.');
+  if (!user || !repo || !token) {
+    setGithubStatus('Save your settings first', 'error');
     return;
   }
   
-  console.log('=== MANUAL PUSH DEBUG INFO ===');
-  console.log('Username:', username);
-  console.log('Repo:', repo);
-  console.log('Token:', token.substring(0, 10) + '...');
-  
-  alert('Testing GitHub connection...\n\nCheck the browser console (F12) for detailed information.');
+  document.getElementById('pushBtn').disabled = true;
+  setGithubStatus('Pushing...', 'info');
   
   try {
-    const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
+    const url = `https://api.github.com/repos/${user}/${repo}/contents/index.html`;
     
-    console.log('URL:', getUrl);
-    console.log('\nStep 1: Testing connection...');
-    
-    const getRes = await fetch(getUrl, {
-      headers: { 
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
+    // Get current SHA
+    const getRes = await fetch(url, {
+      headers: { 'Authorization': `token ${token}` }
     });
     
-    console.log('Response status:', getRes.status);
-    console.log('Response headers:', {
-      'content-type': getRes.headers.get('content-type'),
-      'x-ratelimit-remaining': getRes.headers.get('x-ratelimit-remaining'),
-      'x-ratelimit-limit': getRes.headers.get('x-ratelimit-limit')
-    });
-    
-    const responseText = await getRes.text();
-    console.log('Response text (first 500 chars):', responseText.substring(0, 500));
-    
-    // Try to parse as JSON
-    let fileData = null;
-    try {
-      fileData = JSON.parse(responseText);
-      console.log('Parsed JSON successfully:', fileData);
-    } catch (e) {
-      console.log('Failed to parse as JSON:', e.message);
-      console.log('Response looks like:', responseText.substring(0, 100));
+    let sha = null;
+    if (getRes.ok) {
+      const data = await getRes.json();
+      sha = data.sha;
     }
     
-    // Check the status and decide what to do
-    if (getRes.status === 401) {
-      alert('❌ ERROR: Invalid GitHub token!\n\nYour token is wrong or expired.\n\n✓ Go to GitHub Settings > Developer Settings > Personal Access Tokens\n✓ Create a NEW token\n✓ Copy it\n✓ Click ⚙ Sync again and enter the new token');
-      return;
-    }
-    
-    if (getRes.status === 404) {
-      alert('❌ ERROR: Repository not found!\n\nCheck that your username and repo name are correct.\n\nExample:\n- Username: verasofia91\n- Repo: recipe-book');
-      return;
-    }
-    
-    if (!getRes.ok) {
-      if (fileData && fileData.message) {
-        alert('❌ ERROR from GitHub:\n\n' + fileData.message);
-      } else {
-        alert('❌ ERROR: GitHub returned status ' + getRes.status);
-      }
-      return;
-    }
-    
-    // If we got here, file exists and we have the SHA
-    let sha = fileData.sha;
-    console.log('Got SHA:', sha);
-    
-    // Now push
-    console.log('\nStep 2: Preparing content...');
+    // Prepare content
     const html = document.documentElement.outerHTML
       .replace(/let recipes = \[[\s\S]*?\];\n\nlet categories/, `let recipes = ${JSON.stringify(recipes, null, 2)};\n\nlet categories`)
       .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
     
     const content = btoa(unescape(encodeURIComponent(html)));
-    console.log('Content size:', content.length, 'bytes');
     
-    console.log('\nStep 3: Pushing to GitHub...');
+    // Push
     const body = {
-      message: `Updated recipe book - ${new Date().toLocaleString()}`,
-      content: content,
-      sha: sha
+      message: `Updated ${new Date().toLocaleString()}`,
+      content: content
     };
+    if (sha) body.sha = sha;
     
-    const pushRes = await fetch(getUrl, {
+    const pushRes = await fetch(url, {
       method: 'PUT',
       headers: {
         'Authorization': `token ${token}`,
@@ -1393,50 +1380,45 @@ async function manualPushToGithub() {
       body: JSON.stringify(body)
     });
     
-    console.log('Push response status:', pushRes.status);
-    const pushText = await pushRes.text();
-    console.log('Push response:', pushText.substring(0, 500));
-    
     if (pushRes.ok) {
-      localStorage.setItem('lastSyncTime', new Date().toISOString());
-      console.log('✓ SUCCESS');
-      alert('✓ Success!\n\nYour recipes have been pushed to GitHub.');
+      setGithubStatus('✓ Pushed successfully!', 'success');
     } else {
-      try {
-        const pushData = JSON.parse(pushText);
-        alert('❌ Push failed:\n\n' + pushData.message);
-      } catch (e) {
-        alert('❌ Push failed with status ' + pushRes.status);
-      }
+      const err = await pushRes.json();
+      setGithubStatus('Push failed: ' + (err.message || 'Unknown error'), 'error');
     }
-    
   } catch (e) {
-    console.log('ERROR:', e);
-    alert('❌ Error:\n\n' + e.message + '\n\nCheck the browser console (F12) for details.');
+    setGithubStatus('Error: ' + e.message, 'error');
   }
+  
+  document.getElementById('pushBtn').disabled = false;
 }
 
-async function autoLoadFromGithub() {
-  const username = localStorage.getItem('gh_username');
+async function githubPull() {
+  const user = localStorage.getItem('gh_user');
   const repo = localStorage.getItem('gh_repo');
   const token = localStorage.getItem('gh_token');
   
-  if (!username || !repo || !token) {
-    console.log('GitHub not configured');
+  if (!user || !repo || !token) {
+    setGithubStatus('Save your settings first', 'error');
     return;
   }
   
+  document.getElementById('pullBtn').disabled = true;
+  setGithubStatus('Pulling...', 'info');
+  
   try {
-    const url = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
+    const url = `https://api.github.com/repos/${user}/${repo}/contents/index.html`;
+    
     const res = await fetch(url, {
       headers: { 
-        'Authorization': `token ${token}`, 
-        'Accept': 'application/vnd.github.v3.raw' 
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3.raw'
       }
     });
     
     if (!res.ok) {
-      console.log('Auto-load: File not found on GitHub');
+      setGithubStatus('Pull failed: File not found', 'error');
+      document.getElementById('pullBtn').disabled = false;
       return;
     }
     
@@ -1456,16 +1438,19 @@ async function autoLoadFromGithub() {
           renderTabs();
           renderGrid();
           renderShoppingPanel();
-          console.log('Auto-load: Loaded ' + recipes.length + ' recipes from GitHub');
+          setGithubStatus('✓ Pulled successfully!', 'success');
+          document.getElementById('pullBtn').disabled = false;
           return;
         }
       }
     }
     
-    console.log('Auto-load: Could not parse recipes');
+    setGithubStatus('Pull failed: Could not parse', 'error');
   } catch (e) {
-    console.log('Auto-load error:', e.message);
+    setGithubStatus('Error: ' + e.message, 'error');
   }
+  
+  document.getElementById('pullBtn').disabled = false;
 }
 
 // ─────────────────────────────────────────────
@@ -1474,7 +1459,6 @@ async function autoLoadFromGithub() {
 renderTabs();
 renderGrid();
 renderShoppingPanel();
-autoLoadFromGithub();
 </script>
 
 
