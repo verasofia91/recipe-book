@@ -274,10 +274,10 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
 <div class="tabs-bar" id="tabsBar">
   <div class="tabs-inner" id="tabsInner">
       <button class="tab-btn active" onclick="setTab('All')">
-        All&nbsp;<span class="tab-count">6</span>
+        All&nbsp;<span class="tab-count">7</span>
       </button>
       <button class="tab-btn " onclick="setTab('Breakfast')">
-        Breakfast&nbsp;<span class="tab-count">2</span>
+        Breakfast&nbsp;<span class="tab-count">3</span>
       </button>
       <button class="tab-btn " onclick="setTab('Lunch')">
         Lunch&nbsp;<span class="tab-count">1</span>
@@ -297,7 +297,7 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
 <main class="main">
   <div class="section-header">
     <h2 class="section-title" id="sectionTitle">All Recipes</h2>
-    <span class="section-meta" id="recipeCount">6 Recipes</span>
+    <span class="section-meta" id="recipeCount">7 Recipes</span>
   </div>
   <div class="recipe-grid" id="recipeGrid">
     <div class="recipe-card" onclick="viewRecipe(1)">
@@ -391,7 +391,7 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
       </div>
     </div>
     <div class="recipe-card" onclick="viewRecipe(10)">
-      <img class="card-img" src="https://grantourismotravels.com/wp-content/uploads/2021/11/Spaghetti-Bolognese-Recipe-Italian-Australian-Matt-Preston-Copyright-2022-Terence-Carter-Grantourismo-T.jpg" alt="Bolognese Sauce">
+      
       <div class="card-top">
         <div class="card-number">06</div>
         <div class="card-emoji">🍝</div>
@@ -405,6 +405,24 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
           
           
           <div class="card-stat"><div class="stat-label">Ingr.</div><div class="stat-val">11</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-card" onclick="viewRecipe(10)">
+      
+      <div class="card-top">
+        <div class="card-number">07</div>
+        <div class="card-emoji">🍽️</div>
+      </div>
+      <div class="card-body">
+        <div class="card-category">Breakfast</div>
+        <div class="card-name">Keema Curry</div>
+        
+        <div class="card-divider"></div>
+        <div class="card-stats">
+          
+          
+          <div class="card-stat"><div class="stat-label">Ingr.</div><div class="stat-val">1</div></div>
         </div>
       </div>
     </div></div>
@@ -444,9 +462,9 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
     <li class="step-item"><span class="step-n">06</span><span class="step-text">Leave uncovered and cook for a minimum of of 2 hours. Keep checking the sauce in case it needs more water to continue cooking.</span></li>
     <li class="step-item"><span class="step-n">07</span><span class="step-text">Once cooked, add a teaspoon of sugar, pinch of bicarb soda (if sour), the other half of the basil, and adjust salt &amp; pepper if needed.</span></li></ul>
       </div>
-      <div class="modal-section" id="viewNotesSection" style="">
+      <div class="modal-section" id="viewNotesSection" style="display:none">
         <div class="modal-section-label">Notes</div>
-        <p class="notes-text" id="viewNotes">For larger quantity: - 1kg mince beef - 2 onions - 5 garlic cloves - 2 carrots - 3 celery sticks - Basil - Parmesan rind - 1 glass red wine - 1 cube beef stock - 1 can diced tomatoes - 2 jars passata</p>
+        <p class="notes-text" id="viewNotes"></p>
       </div>
       <div class="modal-footer">
         <div class="modal-footer-left">
@@ -467,8 +485,8 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
   <div class="form-modal">
     <div class="form-header">
       <div>
-        <div class="form-header-label" id="formLabel">Edit Recipe</div>
-        <h2 id="formTitle">Bolognese Sauce</h2>
+        <div class="form-header-label" id="formLabel">New Recipe</div>
+        <h2 id="formTitle">Add to Collection</h2>
       </div>
       <button class="modal-close" style="position:static;" onclick="document.getElementById('addOverlay').classList.remove('open')">✕</button>
     </div>
@@ -477,8 +495,8 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
       <div class="form-group">
         <label>Header Image URL (optional)</label>
         <input type="url" id="fImageUrl" placeholder="https://example.com/image.jpg" onchange="handleImageUrlChange()" style="font-size:0.78rem;padding:8px 0;background:none;border:none;border-bottom:1.5px solid var(--rule);color:var(--mid-grey)">
-        <div class="img-preview-wrap" id="imgPreviewWrap" style="">
-          <img id="imgPreview" class="img-preview" src="https://grantourismotravels.com/wp-content/uploads/2021/11/Spaghetti-Bolognese-Recipe-Italian-Australian-Matt-Preston-Copyright-2022-Terence-Carter-Grantourismo-T.jpg" alt="Preview">
+        <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none">
+          <img id="imgPreview" class="img-preview" src="" alt="Preview">
           <button class="img-clear-btn" onclick="clearImage()">✕ Remove image</button>
         </div>
       </div>
@@ -540,7 +558,7 @@ Meanwhile, warm olive oil over medium heat."></textarea>
     </div>
     <div class="form-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('addOverlay').classList.remove('open')">Cancel</button>
-      <button class="btn btn-black" id="formSaveBtn" onclick="saveRecipe()">Update Recipe</button>
+      <button class="btn btn-black" id="formSaveBtn" onclick="saveRecipe()">Save Recipe</button>
     </div>
   </div>
 </div>
@@ -618,8 +636,8 @@ Meanwhile, warm olive oil over medium heat."></textarea>
 </div>
 
 <!-- SAVE TOAST -->
-<div class="save-toast" id="saveToast">
-  <div class="toast-text"><strong id="toastTitle">Recipe Updated</strong><span id="toastMsg">Save your book to keep changes.</span></div>
+<div class="save-toast show" id="saveToast">
+  <div class="toast-text"><strong id="toastTitle">Recipe Added</strong><span id="toastMsg">Save your book to keep changes.</span></div>
   <button class="btn btn-black btn-sm" onclick="exportBook()">↓ Save File</button>
   <button onclick="document.getElementById('saveToast').classList.remove('show')" style="background:none;border:none;color:#666;cursor:pointer;font-size:0.9rem;padding:0 0 0 4px">✕</button>
 </div>
@@ -808,7 +826,7 @@ let recipes = [
       "mealprep"
     ],
     "videoUrl": "",
-    "imageData": "https://grantourismotravels.com/wp-content/uploads/2021/11/Spaghetti-Bolognese-Recipe-Italian-Australian-Matt-Preston-Copyright-2022-Terence-Carter-Grantourismo-T.jpg",
+    "imageData": "",
     "ingredients": [
       "500g mince beef",
       "1 onion diced",
@@ -832,6 +850,24 @@ let recipes = [
       "Once cooked, add a teaspoon of sugar, pinch of bicarb soda (if sour), the other half of the basil, and adjust salt & pepper if needed."
     ],
     "notes": "For larger quantity: - 1kg mince beef - 2 onions - 5 garlic cloves - 2 carrots - 3 celery sticks - Basil - Parmesan rind - 1 glass red wine - 1 cube beef stock - 1 can diced tomatoes - 2 jars passata"
+  },
+  {
+    "id": 10,
+    "emoji": "🍽️",
+    "name": "Keema Curry",
+    "category": "Breakfast",
+    "time": "",
+    "servings": "",
+    "tags": [],
+    "videoUrl": "https://www.youtube.com/watch?v=ylkuJzq7EGc",
+    "imageData": "",
+    "ingredients": [
+      "Mince pork/lamb"
+    ],
+    "steps": [
+      "fry spices"
+    ],
+    "notes": ""
   }
 ];
 
