@@ -391,7 +391,7 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
       </div>
     </div>
     <div class="recipe-card" onclick="viewRecipe(10)">
-      
+      <img class="card-img" src="https://grantourismotravels.com/wp-content/uploads/2021/11/Spaghetti-Bolognese-Recipe-Italian-Australian-Matt-Preston-Copyright-2022-Terence-Carter-Grantourismo-T.jpg" alt="Bolognese Sauce">
       <div class="card-top">
         <div class="card-number">06</div>
         <div class="card-emoji">🍝</div>
@@ -444,9 +444,9 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
     <li class="step-item"><span class="step-n">06</span><span class="step-text">Leave uncovered and cook for a minimum of of 2 hours. Keep checking the sauce in case it needs more water to continue cooking.</span></li>
     <li class="step-item"><span class="step-n">07</span><span class="step-text">Once cooked, add a teaspoon of sugar, pinch of bicarb soda (if sour), the other half of the basil, and adjust salt &amp; pepper if needed.</span></li></ul>
       </div>
-      <div class="modal-section" id="viewNotesSection" style="display:none">
+      <div class="modal-section" id="viewNotesSection" style="">
         <div class="modal-section-label">Notes</div>
-        <p class="notes-text" id="viewNotes"></p>
+        <p class="notes-text" id="viewNotes">For larger quantity: - 1kg mince beef - 2 onions - 5 garlic cloves - 2 carrots - 3 celery sticks - Basil - Parmesan rind - 1 glass red wine - 1 cube beef stock - 1 can diced tomatoes - 2 jars passata</p>
       </div>
       <div class="modal-footer">
         <div class="modal-footer-left">
@@ -473,12 +473,12 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
       <button class="modal-close" style="position:static;" onclick="document.getElementById('addOverlay').classList.remove('open')">✕</button>
     </div>
     <div class="form-body">
-      <!-- Image upload -->
+      <!-- Image URL input -->
       <div class="form-group">
-        <label>Header Image (optional)</label>
-        <input type="file" id="fImageFile" accept="image/*" onchange="handleImageUpload(event)" style="font-size:0.78rem;padding:8px 0;background:none;border:none;border-bottom:1.5px solid var(--rule);color:var(--mid-grey)">
-        <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none">
-          <img id="imgPreview" class="img-preview" src="" alt="Preview">
+        <label>Header Image URL (optional)</label>
+        <input type="url" id="fImageUrl" placeholder="https://example.com/image.jpg" onchange="handleImageUrlChange()" style="font-size:0.78rem;padding:8px 0;background:none;border:none;border-bottom:1.5px solid var(--rule);color:var(--mid-grey)">
+        <div class="img-preview-wrap" id="imgPreviewWrap" style="">
+          <img id="imgPreview" class="img-preview" src="https://grantourismotravels.com/wp-content/uploads/2021/11/Spaghetti-Bolognese-Recipe-Italian-Australian-Matt-Preston-Copyright-2022-Terence-Carter-Grantourismo-T.jpg" alt="Preview">
           <button class="img-clear-btn" onclick="clearImage()">✕ Remove image</button>
         </div>
       </div>
@@ -581,7 +581,7 @@ Meanwhile, warm olive oil over medium heat."></textarea>
 </div>
 
 <!-- GITHUB PANEL -->
-<div id="githubPanel" style="display:none; position:fixed; top:0; right:0; bottom:0; width:400px; background:white; border-left:1px solid #ddd; z-index:300; padding:20px; overflow-y:auto; box-shadow:-2px 0 10px rgba(0,0,0,0.1);">
+<div id="githubPanel" style="display: block; position: fixed; top: 0px; right: 0px; bottom: 0px; width: 400px; background: white; border-left: 1px solid rgb(221, 221, 221); z-index: 300; padding: 20px; overflow-y: auto; box-shadow: rgba(0, 0, 0, 0.1) -2px 0px 10px;">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
     <h3 style="margin:0;">GitHub Sync</h3>
     <button onclick="closeGithubPanel()" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
@@ -604,9 +604,9 @@ Meanwhile, warm olive oil over medium heat."></textarea>
   
   <button onclick="saveGithubSettings()" style="width:100%; padding:10px; background:#000; color:white; border:none; cursor:pointer; margin-bottom:10px;">Save Settings</button>
   
-  <div id="ghStatus" style="padding:10px; background:#f5f5f5; border-radius:4px; margin-bottom:10px; font-size:12px; min-height:30px;"></div>
+  <div id="ghStatus" style="padding: 10px; background: rgb(245, 245, 245); border-radius: 4px; margin-bottom: 10px; font-size: 12px; min-height: 30px; color: rgb(39, 174, 96);">Pushing...</div>
   
-  <button id="pushBtn" onclick="githubPush()" style="width:100%; padding:10px; background:#000; color:white; border:none; cursor:pointer; margin-bottom:10px;">↑ Push to GitHub</button>
+  <button id="pushBtn" onclick="githubPush()" style="width:100%; padding:10px; background:#000; color:white; border:none; cursor:pointer; margin-bottom:10px;" disabled="">↑ Push to GitHub</button>
   <button id="pullBtn" onclick="githubPull()" style="width:100%; padding:10px; background:#333; color:white; border:none; cursor:pointer;">↓ Pull from GitHub</button>
   
   <p style="font-size:11px; color:#999; margin-top:20px; line-height:1.6;">
@@ -808,7 +808,7 @@ let recipes = [
       "mealprep"
     ],
     "videoUrl": "",
-    "imageData": "",
+    "imageData": "https://grantourismotravels.com/wp-content/uploads/2021/11/Spaghetti-Bolognese-Recipe-Italian-Australian-Matt-Preston-Copyright-2022-Terence-Carter-Grantourismo-T.jpg",
     "ingredients": [
       "500g mince beef",
       "1 onion diced",
@@ -1000,33 +1000,31 @@ function populateCategorySelect() {
   sel.innerHTML = categories.map(c=>`<option value="${c}">${c}</option>`).join('');
 }
 
-function handleImageUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    pendingImageData = ev.target.result;
-    document.getElementById('imgPreview').src = pendingImageData;
-    document.getElementById('imgPreviewWrap').style.display = '';
-  };
-  reader.readAsDataURL(file);
+function handleImageUrlChange() {
+  const url = document.getElementById('fImageUrl').value.trim();
+  if (!url) {
+    clearImage();
+    return;
+  }
+  pendingImageData = url;
+  document.getElementById('imgPreview').src = url;
+  document.getElementById('imgPreviewWrap').style.display = '';
 }
 
 function clearImage() {
   pendingImageData = '';
   document.getElementById('imgPreview').src = '';
   document.getElementById('imgPreviewWrap').style.display = 'none';
-  document.getElementById('fImageFile').value = '';
+  document.getElementById('fImageUrl').value = '';
 }
 
 function openAddModal() {
   editingId = null;
   pendingImageData = '';
-  ['fName','fTime','fServings','fIngredients','fSteps','fNotes','fTags','fVideo'].forEach(id => document.getElementById(id).value='');
+  ['fName','fTime','fServings','fIngredients','fSteps','fNotes','fTags','fVideo','fImageUrl'].forEach(id => document.getElementById(id).value='');
   document.getElementById('fEmoji').value = '🍽️';
   document.getElementById('imgPreviewWrap').style.display = 'none';
   document.getElementById('imgPreview').src = '';
-  document.getElementById('fImageFile').value = '';
   document.getElementById('formLabel').textContent = 'New Recipe';
   document.getElementById('formTitle').textContent = 'Add to Collection';
   document.getElementById('formSaveBtn').textContent = 'Save Recipe';
@@ -1046,6 +1044,7 @@ function openEditModal(id) {
   document.getElementById('fServings').value = r.servings || '';
   document.getElementById('fTags').value = (r.tags||[]).join(', ');
   document.getElementById('fVideo').value = r.videoUrl || '';
+  document.getElementById('fImageUrl').value = r.imageData || '';
   document.getElementById('fIngredients').value = r.ingredients.join('\n');
   document.getElementById('fSteps').value = r.steps.join('\n');
   document.getElementById('fNotes').value = r.notes || '';
@@ -1056,7 +1055,6 @@ function openEditModal(id) {
   } else {
     document.getElementById('imgPreviewWrap').style.display = 'none';
   }
-  document.getElementById('fImageFile').value = '';
 
   document.getElementById('formLabel').textContent = 'Edit Recipe';
   document.getElementById('formTitle').textContent = r.name;
