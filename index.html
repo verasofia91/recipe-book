@@ -265,7 +265,7 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
     <div class="header-actions">
       <button class="hbtn hbtn-ghost" onclick="toggleShoppingPanel()" title="Shopping List">🛒 <span class="btn-text">List</span></button>
       <button class="hbtn hbtn-primary" onclick="openAddModal()">+ <span class="btn-text">New Recipe</span></button>
-      <button class="hbtn hbtn-ghost" id="syncBtn" onclick="if(typeof toggleGithubPanel === 'function') toggleGithubPanel(); else alert('Sync not ready')" title="Sync with GitHub">⚙ <span class="btn-text">Sync</span></button>
+      <button class="hbtn hbtn-ghost" onclick="promptGithubSetup()" title="Setup GitHub Sync">⚙ <span class="btn-text">Sync</span></button>
       <button class="hbtn hbtn-ghost" onclick="exportBook()" title="Save as HTML">↓ <span class="btn-text">Save</span></button>
     </div>
   </div>
@@ -1265,6 +1265,33 @@ function exportBook() {
 // ─────────────────────────────────────────────
 //  GITHUB AUTO-SYNC
 // ─────────────────────────────────────────────
+
+function promptGithubSetup() {
+  const username = localStorage.getItem('gh_username');
+  const repo = localStorage.getItem('gh_repo');
+  const token = localStorage.getItem('gh_token');
+  
+  if (username && repo && token) {
+    alert('✓ GitHub is configured!\n\nUsername: ' + username + '\nRepo: ' + repo + '\n\nRecipes will sync automatically when you save them.');
+    return;
+  }
+  
+  const newUsername = prompt('Enter your GitHub username:');
+  if (!newUsername) return;
+  
+  const newRepo = prompt('Enter your repository name (e.g., recipe-book):');
+  if (!newRepo) return;
+  
+  const newToken = prompt('Enter your Personal Access Token:\n\n(Go to GitHub Settings > Developer Settings > Personal Access Tokens > Generate New Token)');
+  if (!newToken) return;
+  
+  localStorage.setItem('gh_username', newUsername);
+  localStorage.setItem('gh_repo', newRepo);
+  localStorage.setItem('gh_token', newToken);
+  
+  alert('✓ Configuration saved!\n\nYour recipes will now sync automatically to GitHub when you save them.');
+  console.log('GitHub configured:', newUsername + '/' + newRepo);
+}
 
 async function autoSyncToGithub() {
   const username = localStorage.getItem('gh_username');
