@@ -246,26 +246,6 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
 }
 @media (max-width: 380px) { .recipe-grid { grid-template-columns: 1fr; } }
 @media (max-height: 500px) and (orientation: landscape) { header { position: relative; } .modal, .form-modal { max-height: 96vh; } }
-
-/* ── GITHUB PANEL ── */
-.github-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 380px; background: var(--white); border-left: 1px solid var(--rule); box-shadow: -2px 0 8px rgba(0,0,0,0.1); transform: translateX(100%); transition: transform 0.3s ease; z-index: 180; display: flex; flex-direction: column; }
-.github-panel.open { transform: translateX(0); }
-.github-panel h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--mid-grey); margin-bottom: 8px; }
-.github-panel .gp-section { padding: 20px; border-bottom: 1px solid var(--rule); }
-.github-panel .gp-header { background: var(--black); color: var(--white); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
-.github-panel .gp-close { background: none; border: none; color: var(--white); cursor: pointer; font-size: 1.2rem; }
-.gp-input { background: var(--bg); border: none; border-bottom: 1.5px solid var(--rule); padding: 10px 0; font-family: 'Barlow', sans-serif; font-size: 0.82rem; width: 100%; outline: none; color: var(--black); margin-bottom: 12px; }
-.gp-input:focus { background: var(--white); border-bottom-color: var(--black); }
-.gp-input.error { border-bottom-color: #c0392b; }
-.gp-status { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; color: var(--mid-grey); margin-bottom: 12px; padding: 8px; background: #f5f5f5; border-left: 2px solid var(--rule); }
-.gp-status.success { border-left-color: #27ae60; color: #27ae60; }
-.gp-status.error { border-left-color: #c0392b; color: #c0392b; }
-.gp-body { flex: 1; overflow-y: auto; }
-.gp-footer { padding: 16px 20px; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 8px; }
-.gp-help { font-family: 'Barlow', sans-serif; font-size: 0.75rem; color: var(--mid-grey); line-height: 1.6; margin-top: 8px; }
-.gp-help a { color: #3498db; text-decoration: none; }
-.gp-help a:hover { text-decoration: underline; }
-@media (max-width: 900px) { .github-panel { width: 100%; } }
 </style>
 </head>
 <body>
@@ -285,7 +265,7 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
     <div class="header-actions">
       <button class="hbtn hbtn-ghost" onclick="toggleShoppingPanel()" title="Shopping List">🛒 <span class="btn-text">List</span></button>
       <button class="hbtn hbtn-primary" onclick="openAddModal()">+ <span class="btn-text">New Recipe</span></button>
-      <button class="hbtn hbtn-ghost" id="syncBtn" onclick="toggleGithubPanel()" title="Sync with GitHub">⚙ <span class="btn-text">Sync</span></button>
+      <button class="hbtn hbtn-ghost" id="syncBtn" onclick="if(typeof toggleGithubPanel === 'function') toggleGithubPanel(); else alert('Sync not ready')" title="Sync with GitHub">⚙ <span class="btn-text">Sync</span></button>
       <button class="hbtn hbtn-ghost" onclick="exportBook()" title="Save as HTML">↓ <span class="btn-text">Save</span></button>
     </div>
   </div>
@@ -493,10 +473,10 @@ header { background: var(--black); color: var(--white); position: sticky; top: 0
       <button class="modal-close" style="position:static;" onclick="document.getElementById('addOverlay').classList.remove('open')">✕</button>
     </div>
     <div class="form-body">
-      <!-- Image URL input -->
+      <!-- Image upload -->
       <div class="form-group">
-        <label>Header Image URL (optional)</label>
-        <input type="url" id="fImageUrl" placeholder="https://example.com/image.jpg" onchange="handleImageUrlChange()">
+        <label>Header Image (optional)</label>
+        <input type="file" id="fImageFile" accept="image/*" onchange="handleImageUpload(event)" style="font-size:0.78rem;padding:8px 0;background:none;border:none;border-bottom:1.5px solid var(--rule);color:var(--mid-grey)">
         <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none">
           <img id="imgPreview" class="img-preview" src="" alt="Preview">
           <button class="img-clear-btn" onclick="clearImage()">✕ Remove image</button>
@@ -597,38 +577,6 @@ Meanwhile, warm olive oil over medium heat."></textarea>
     <button class="btn btn-black" style="width:100%;justify-content:center" onclick="exportToNotes()">Export to iPhone Notes</button>
     <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="clearShoppingList()">Clear List</button>
     <p class="sp-note">Tapping "Export to iPhone Notes" will open the Notes app with your list pre-filled.</p>
-  </div>
-</div>
-
-<!-- GITHUB SYNC PANEL -->
-<div class="github-panel" id="githubPanel">
-  <div class="gp-header">
-    <span style="font-family:'Barlow Condensed';font-size:0.75rem;letter-spacing:2.5px;text-transform:uppercase;">GITHUB SYNC</span>
-    <button class="gp-close" onclick="toggleGithubPanel()">✕</button>
-  </div>
-  <div class="gp-body">
-    <div class="gp-section">
-      <h3>Setup</h3>
-      <p style="font-size:0.8rem;color:var(--dark-grey);margin-bottom:12px;line-height:1.5;">Add your GitHub details to automatically sync recipes.</p>
-      <input type="text" class="gp-input" id="ghUsername" placeholder="GitHub username">
-      <input type="text" class="gp-input" id="ghRepo" placeholder="Repository name">
-      <input type="password" class="gp-input" id="ghToken" placeholder="Personal Access Token">
-      <button class="btn btn-black" style="width:100%;justify-content:center;margin-top:8px" onclick="saveGithubConfig()">Save Configuration</button>
-      <div class="gp-help" style="margin-top:16px">
-        <strong>Need help?</strong><br>
-        1. Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings</a><br>
-        2. Create a "Personal Access Token"<br>
-        3. Give it "repo" permissions<br>
-        4. Copy & paste it above
-      </div>
-    </div>
-    <div class="gp-section" id="syncSection" style="display:none">
-      <h3>Sync</h3>
-      <div id="syncStatus"></div>
-      <button class="btn btn-black" style="width:100%;justify-content:center" id="pushBtn" onclick="pushToGithub()">↑ Push to GitHub</button>
-      <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px" id="pullBtn" onclick="pullFromGithub()">↓ Pull from GitHub</button>
-      <p style="font-size:0.72rem;color:var(--mid-grey);margin-top:12px;line-height:1.5;text-align:center">Last synced: <span id="lastSync">Never</span></p>
-    </div>
   </div>
 </div>
 
@@ -1015,31 +963,33 @@ function populateCategorySelect() {
   sel.innerHTML = categories.map(c=>`<option value="${c}">${c}</option>`).join('');
 }
 
-function handleImageUrlChange() {
-  const url = document.getElementById('fImageUrl').value.trim();
-  if (!url) {
-    clearImage();
-    return;
-  }
-  pendingImageData = url;
-  document.getElementById('imgPreview').src = url;
-  document.getElementById('imgPreviewWrap').style.display = '';
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingImageData = ev.target.result;
+    document.getElementById('imgPreview').src = pendingImageData;
+    document.getElementById('imgPreviewWrap').style.display = '';
+  };
+  reader.readAsDataURL(file);
 }
 
 function clearImage() {
   pendingImageData = '';
   document.getElementById('imgPreview').src = '';
   document.getElementById('imgPreviewWrap').style.display = 'none';
-  document.getElementById('fImageUrl').value = '';
+  document.getElementById('fImageFile').value = '';
 }
 
 function openAddModal() {
   editingId = null;
   pendingImageData = '';
-  ['fName','fTime','fServings','fIngredients','fSteps','fNotes','fTags','fVideo','fImageUrl'].forEach(id => document.getElementById(id).value='');
+  ['fName','fTime','fServings','fIngredients','fSteps','fNotes','fTags','fVideo'].forEach(id => document.getElementById(id).value='');
   document.getElementById('fEmoji').value = '🍽️';
   document.getElementById('imgPreviewWrap').style.display = 'none';
   document.getElementById('imgPreview').src = '';
+  document.getElementById('fImageFile').value = '';
   document.getElementById('formLabel').textContent = 'New Recipe';
   document.getElementById('formTitle').textContent = 'Add to Collection';
   document.getElementById('formSaveBtn').textContent = 'Save Recipe';
@@ -1059,7 +1009,6 @@ function openEditModal(id) {
   document.getElementById('fServings').value = r.servings || '';
   document.getElementById('fTags').value = (r.tags||[]).join(', ');
   document.getElementById('fVideo').value = r.videoUrl || '';
-  document.getElementById('fImageUrl').value = r.imageData || '';
   document.getElementById('fIngredients').value = r.ingredients.join('\n');
   document.getElementById('fSteps').value = r.steps.join('\n');
   document.getElementById('fNotes').value = r.notes || '';
@@ -1070,6 +1019,7 @@ function openEditModal(id) {
   } else {
     document.getElementById('imgPreviewWrap').style.display = 'none';
   }
+  document.getElementById('fImageFile').value = '';
 
   document.getElementById('formLabel').textContent = 'Edit Recipe';
   document.getElementById('formTitle').textContent = r.name;
@@ -1114,14 +1064,6 @@ function saveRecipe() {
   renderTabs(); renderGrid();
   showToast(editingId ? 'Recipe Updated' : 'Recipe Added', 'Save your book to keep changes.');
   editingId = null;
-  
-  // Auto-sync to GitHub if configured
-  const ghUsername = localStorage.getItem('gh_username');
-  const ghRepo = localStorage.getItem('gh_repo');
-  const ghToken = localStorage.getItem('gh_token');
-  if (ghUsername && ghRepo && ghToken) {
-    autoSyncToGithub();
-  }
 }
 
 // ─────────────────────────────────────────────
@@ -1307,311 +1249,9 @@ function exportBook() {
     .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-  a.download = 'VeraSofia_Recipe-Book.html';
+  a.download = 'recipe-book.html';
   a.click();
   document.getElementById('saveToast').classList.remove('show');
-}
-
-// ─────────────────────────────────────────────
-//  GITHUB SYNC
-// ─────────────────────────────────────────────
-function toggleGithubPanel() {
-  document.getElementById('githubPanel').classList.toggle('open');
-  if (document.getElementById('githubPanel').classList.contains('open')) {
-    loadGithubConfig();
-  }
-}
-
-function saveGithubConfig() {
-  const username = document.getElementById('ghUsername').value.trim();
-  const repo = document.getElementById('ghRepo').value.trim();
-  const token = document.getElementById('ghToken').value.trim();
-  
-  if (!username || !repo || !token) {
-    showGithubStatus('Please fill in all fields', 'error');
-    return;
-  }
-  
-  localStorage.setItem('gh_username', username);
-  localStorage.setItem('gh_repo', repo);
-  localStorage.setItem('gh_token', token);
-  
-  showGithubStatus('Configuration saved!', 'success');
-  setTimeout(() => loadGithubConfig(), 1000);
-}
-
-function loadGithubConfig() {
-  const username = localStorage.getItem('gh_username');
-  const repo = localStorage.getItem('gh_repo');
-  const token = localStorage.getItem('gh_token');
-  
-  document.getElementById('ghUsername').value = username || '';
-  document.getElementById('ghRepo').value = repo || '';
-  document.getElementById('ghToken').value = token || '';
-  
-  const syncSection = document.getElementById('syncSection');
-  if (username && repo && token) {
-    syncSection.style.display = '';
-    loadLastSyncTime();
-  } else {
-    syncSection.style.display = 'none';
-  }
-}
-
-function showGithubStatus(msg, type) {
-  const statusEl = document.getElementById('syncStatus');
-  statusEl.innerHTML = `<div class="gp-status ${type}">${msg}</div>`;
-}
-
-function loadLastSyncTime() {
-  const lastSync = localStorage.getItem('lastSyncTime');
-  if (lastSync) {
-    const date = new Date(lastSync);
-    document.getElementById('lastSync').textContent = date.toLocaleString();
-  }
-}
-
-async function pushToGithub() {
-  const username = localStorage.getItem('gh_username');
-  const repo = localStorage.getItem('gh_repo');
-  const token = localStorage.getItem('gh_token');
-  
-  if (!username || !repo || !token) {
-    showGithubStatus('Configuration not set', 'error');
-    return;
-  }
-  
-  showGithubStatus('Pushing to GitHub...', 'error');
-  document.getElementById('pushBtn').disabled = true;
-  
-  try {
-    // Get current file content to check if it exists
-    const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
-    let sha = null;
-    
-    try {
-      const getRes = await fetch(getUrl, {
-        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' }
-      });
-      if (getRes.ok) {
-        const data = await getRes.json();
-        sha = data.sha;
-      }
-    } catch (e) {
-      // File doesn't exist yet, that's ok - sha will be null
-      console.log('File does not exist yet, will create new one');
-    }
-    
-    // Create the file content with data
-    const html = document.documentElement.outerHTML
-      .replace(/let recipes = \[[\s\S]*?\];\n\nlet categories/, `let recipes = ${JSON.stringify(recipes, null, 2)};\n\nlet categories`)
-      .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
-    
-    const content = btoa(unescape(encodeURIComponent(html)));
-    
-    const body = {
-      message: `Updated recipe book - ${new Date().toLocaleString()}`,
-      content: content
-    };
-    
-    // Only add sha if we found it
-    if (sha) {
-      body.sha = sha;
-    }
-    
-    const pushRes = await fetch(getUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-      })
-    });
-    
-    if (pushRes.ok) {
-      const now = new Date().toISOString();
-      localStorage.setItem('lastSyncTime', now);
-      showGithubStatus('✓ Pushed successfully!', 'success');
-      loadLastSyncTime();
-      setTimeout(() => showGithubStatus('', 'success'), 3000);
-    } else {
-      const err = await pushRes.json();
-      showGithubStatus(`Push failed: ${err.message}`, 'error');
-    }
-  } catch (e) {
-    showGithubStatus(`Error: ${e.message}`, 'error');
-  }
-  
-  document.getElementById('pushBtn').disabled = false;
-}
-
-async function pullFromGithub() {
-  const username = localStorage.getItem('gh_username');
-  const repo = localStorage.getItem('gh_repo');
-  const token = localStorage.getItem('gh_token');
-  
-  if (!username || !repo || !token) {
-    showGithubStatus('Configuration not set', 'error');
-    return;
-  }
-  
-  showGithubStatus('Pulling from GitHub...', 'error');
-  document.getElementById('pullBtn').disabled = true;
-  
-  try {
-    const url = `https://api.github.com/repos/${username}/${repo}/contents/VeraSofia_Recipe-Book.html`;
-    const res = await fetch(url, {
-      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' }
-    });
-    
-    if (!res.ok) {
-      throw new Error('File not found on GitHub');
-    }
-    
-    const html = await res.text();
-    
-    // Parse and extract recipes from the HTML
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const scripts = doc.getElementsByTagName('script');
-    
-    let recipesMatch, categoriesMatch;
-    for (let script of scripts) {
-      if (script.textContent.includes('let recipes = ')) {
-        recipesMatch = script.textContent.match(/let recipes = (\[[\s\S]*?\]);/);
-        categoriesMatch = script.textContent.match(/let categories = (\[[\s\S]*?\]);/);
-        break;
-      }
-    }
-    
-    if (recipesMatch && categoriesMatch) {
-      recipes = JSON.parse(recipesMatch[1]);
-      categories = JSON.parse(categoriesMatch[1]);
-      renderTabs();
-      renderGrid();
-      showGithubStatus('✓ Pulled successfully!', 'success');
-      loadLastSyncTime();
-      setTimeout(() => showGithubStatus('', 'success'), 3000);
-    } else {
-      throw new Error('Could not parse recipes from file');
-    }
-  } catch (e) {
-    showGithubStatus(`Error: ${e.message}`, 'error');
-  }
-  
-  document.getElementById('pullBtn').disabled = false;
-}
-
-// Auto-sync version of pushToGithub (silent, no UI updates)
-async function autoSyncToGithub() {
-  const username = localStorage.getItem('gh_username');
-  const repo = localStorage.getItem('gh_repo');
-  const token = localStorage.getItem('gh_token');
-  
-  if (!username || !repo || !token) return;
-  
-  try {
-    const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
-    let sha = null;
-    
-    try {
-      const getRes = await fetch(getUrl, {
-        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+raw' }
-      });
-      if (getRes.ok) {
-        const data = await getRes.json();
-        sha = data.sha;
-      }
-    } catch (e) {
-      // File doesn't exist yet
-    }
-    
-    const html = document.documentElement.outerHTML
-      .replace(/let recipes = \[[\s\S]*?\];\n\nlet categories/, `let recipes = ${JSON.stringify(recipes, null, 2)};\n\nlet categories`)
-      .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
-    
-    const content = btoa(unescape(encodeURIComponent(html)));
-    
-    const body = {
-      message: `Auto-sync: Updated recipe book - ${new Date().toLocaleString()}`,
-      content: content
-    };
-    
-    // Only add sha if we found it
-    if (sha) {
-      body.sha = sha;
-    }
-    
-    await fetch(getUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-    
-    localStorage.setItem('lastSyncTime', new Date().toISOString());
-  } catch (e) {
-    // Silent fail for auto-sync
-    console.log('Auto-sync failed:', e.message);
-  }
-}
-
-// Auto-pull from GitHub on page load
-async function autoLoadFromGithub() {
-  const username = localStorage.getItem('gh_username');
-  const repo = localStorage.getItem('gh_repo');
-  const token = localStorage.getItem('gh_token');
-  
-  if (!username || !repo || !token) {
-    console.log('GitHub not configured, skipping auto-load');
-    return;
-  }
-  
-  try {
-    console.log('Starting auto-load from GitHub...');
-    const url = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
-    const res = await fetch(url, {
-      headers: { 
-        'Authorization': `token ${token}`, 
-        'Accept': 'application/vnd.github.v3.raw' 
-      }
-    });
-    
-    if (!res.ok) {
-      console.log('GitHub file not found or access denied');
-      return;
-    }
-    
-    const html = await res.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const scripts = doc.getElementsByTagName('script');
-    
-    let recipesMatch, categoriesMatch;
-    for (let script of scripts) {
-      if (script.textContent.includes('let recipes = ')) {
-        recipesMatch = script.textContent.match(/let recipes = (\[[\s\S]*?\]);/);
-        categoriesMatch = script.textContent.match(/let categories = (\[[\s\S]*?\]);/);
-        break;
-      }
-    }
-    
-    if (recipesMatch && categoriesMatch) {
-      recipes = JSON.parse(recipesMatch[1]);
-      categories = JSON.parse(categoriesMatch[1]);
-      renderTabs();
-      renderGrid();
-      renderShoppingPanel();
-      console.log('Auto-load successful! Loaded ' + recipes.length + ' recipes');
-    } else {
-      console.log('Could not parse recipes from GitHub file');
-    }
-  } catch (e) {
-    console.log('Auto-load failed:', e.message);
-  }
 }
 
 // ─────────────────────────────────────────────
@@ -1620,7 +1260,6 @@ async function autoLoadFromGithub() {
 renderTabs();
 renderGrid();
 renderShoppingPanel();
-autoLoadFromGithub();
 </script>
 
 
