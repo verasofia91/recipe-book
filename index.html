@@ -1064,14 +1064,6 @@ function saveRecipe() {
   renderTabs(); renderGrid();
   showToast(editingId ? 'Recipe Updated' : 'Recipe Added', 'Save your book to keep changes.');
   editingId = null;
-  
-  // Auto-sync to GitHub if configured
-  setTimeout(() => {
-    const ghUsername = localStorage.getItem('gh_username');
-    if (ghUsername) {
-      autoSyncToGithub();
-    }
-  }, 500);
 }
 
 // ─────────────────────────────────────────────
@@ -1272,80 +1264,99 @@ function promptGithubSetup() {
   const token = localStorage.getItem('gh_token');
   
   if (username && repo && token) {
-    alert('✓ GitHub is configured!\n\nUsername: ' + username + '\nRepo: ' + repo + '\n\nRecipes will sync automatically when you save them.');
+    const choice = confirm('GitHub is configured!\n\n' + username + '/' + repo + '\n\nClick OK to manually push recipes to GitHub now.\n\nClick Cancel to reconfigure.');
+    if (choice) {
+      manualPushToGithub();
+    } else {
+      reconfigureGithub();
+    }
     return;
   }
   
+  reconfigureGithub();
+}
+
+function reconfigureGithub() {
   const newUsername = prompt('Enter your GitHub username:');
   if (!newUsername) return;
   
   const newRepo = prompt('Enter your repository name (e.g., recipe-book):');
   if (!newRepo) return;
   
-  const newToken = prompt('Enter your Personal Access Token:\n\n(Go to GitHub Settings > Developer Settings > Personal Access Tokens > Generate New Token)');
+  const newToken = prompt('Enter your Personal Access Token:\n\n(GitHub Settings > Developer Settings > Personal Access Tokens > Generate New Token with "repo" permission)');
   if (!newToken) return;
   
   localStorage.setItem('gh_username', newUsername);
   localStorage.setItem('gh_repo', newRepo);
   localStorage.setItem('gh_token', newToken);
   
-  alert('✓ Configuration saved!\n\nYour recipes will now sync automatically to GitHub when you save them.');
+  alert('✓ Configuration saved!\n\nClick the ⚙ Sync button to manually push your recipes to GitHub.');
   console.log('GitHub configured:', newUsername + '/' + newRepo);
 }
 
-async function autoSyncToGithub() {
+async function manualPushToGithub() {
   const username = localStorage.getItem('gh_username');
   const repo = localStorage.getItem('gh_repo');
   const token = localStorage.getItem('gh_token');
   
-  if (!username || !repo || !token) return;
+  if (!username || !repo || !token) {
+    alert('GitHub not configured. Click the ⚙ Sync button to set it up.');
+    return;
+  }
+  
+  console.log('Starting manual push...');
+  alert('Pushing recipes to GitHub... This may take a moment.');
   
   try {
+    // Step 1: Get the SHA of the existing file
     const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
+    
+    console.log('Step 1: Fetching current file SHA from:', getUrl);
+    const getRes = await fetch(getUrl, {
+      headers: { 
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
     let sha = null;
     
-    // First, GET the current file to get its SHA
-    try {
-      const getRes = await fetch(getUrl, {
-        headers: { 
-          'Authorization': `token ${token}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
-      
-      if (getRes.ok) {
-        const data = await getRes.json();
-        sha = data.sha;
-        console.log('Auto-sync: Got SHA from GitHub');
-      } else if (getRes.status === 404) {
-        console.log('Auto-sync: File does not exist yet, will create');
-      }
-    } catch (e) {
-      console.log('Auto-sync: Could not get file info:', e.message);
+    if (getRes.ok) {
+      const fileData = await getRes.json();
+      sha = fileData.sha;
+      console.log('Step 1: Got SHA:', sha);
+    } else if (getRes.status === 404) {
+      console.log('Step 1: File does not exist, will create new');
+    } else {
+      const errData = await getRes.json();
+      console.log('Step 1 error:', errData);
+      alert('Error: Could not access GitHub file. Check your token and repo name.\n\nError: ' + errData.message);
+      return;
     }
     
-    // Now prepare the content
+    // Step 2: Prepare content
+    console.log('Step 2: Preparing content...');
     const html = document.documentElement.outerHTML
       .replace(/let recipes = \[[\s\S]*?\];\n\nlet categories/, `let recipes = ${JSON.stringify(recipes, null, 2)};\n\nlet categories`)
       .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
     
     const content = btoa(unescape(encodeURIComponent(html)));
+    console.log('Step 2: Content encoded, size:', content.length);
     
-    // Build the request body
+    // Step 3: Push to GitHub
+    console.log('Step 3: Pushing to GitHub...');
     const body = {
-      message: `Auto-sync: Updated recipes - ${new Date().toLocaleString()}`,
+      message: `Updated recipe book - ${new Date().toLocaleString()}`,
       content: content
     };
     
-    // IMPORTANT: Only add sha if we got one
     if (sha) {
       body.sha = sha;
-      console.log('Auto-sync: Using SHA for update');
+      console.log('Step 3: Adding SHA to update request');
     } else {
-      console.log('Auto-sync: Creating new file (no SHA)');
+      console.log('Step 3: Creating new file (no SHA)');
     }
     
-    // Push to GitHub
     const pushRes = await fetch(getUrl, {
       method: 'PUT',
       headers: {
@@ -1355,15 +1366,21 @@ async function autoSyncToGithub() {
       body: JSON.stringify(body)
     });
     
+    console.log('Step 3: Push response status:', pushRes.status);
+    
     if (pushRes.ok) {
       localStorage.setItem('lastSyncTime', new Date().toISOString());
-      console.log('Auto-sync: ✓ Successfully pushed to GitHub');
+      console.log('✓ Successfully pushed to GitHub');
+      alert('✓ Success!\n\nYour recipes have been pushed to GitHub.');
     } else {
-      const errText = await pushRes.text();
-      console.log('Auto-sync: Push failed', errText);
+      const errData = await pushRes.json();
+      console.log('Push error response:', errData);
+      alert('Push failed:\n\n' + errData.message);
     }
+    
   } catch (e) {
-    console.log('Auto-sync error:', e.message);
+    console.log('Manual push error:', e);
+    alert('Error: ' + e.message);
   }
 }
 
