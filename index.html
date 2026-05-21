@@ -601,7 +601,7 @@ Meanwhile, warm olive oil over medium heat."></textarea>
 </div>
 
 <!-- GITHUB SYNC PANEL -->
-<div class="github-panel open" id="githubPanel">
+<div class="github-panel" id="githubPanel">
   <div class="gp-header">
     <span style="font-family:'Barlow Condensed';font-size:0.75rem;letter-spacing:2.5px;text-transform:uppercase;">GITHUB SYNC</span>
     <button class="gp-close" onclick="toggleGithubPanel()">✕</button>
@@ -619,13 +619,13 @@ Meanwhile, warm olive oil over medium heat."></textarea>
         1. Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings</a><br>
         2. Create a "Personal Access Token"<br>
         3. Give it "repo" permissions<br>
-        4. Copy &amp; paste it above
+        4. Copy & paste it above
       </div>
     </div>
-    <div class="gp-section" id="syncSection" style="">
+    <div class="gp-section" id="syncSection" style="display:none">
       <h3>Sync</h3>
-      <div id="syncStatus"><div class="gp-status error">Pushing to GitHub...</div></div>
-      <button class="btn btn-black" style="width:100%;justify-content:center" id="pushBtn" onclick="pushToGithub()" disabled="">↑ Push to GitHub</button>
+      <div id="syncStatus"></div>
+      <button class="btn btn-black" style="width:100%;justify-content:center" id="pushBtn" onclick="pushToGithub()">↑ Push to GitHub</button>
       <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px" id="pullBtn" onclick="pullFromGithub()">↓ Pull from GitHub</button>
       <p style="font-size:0.72rem;color:var(--mid-grey);margin-top:12px;line-height:1.5;text-align:center">Last synced: <span id="lastSync">Never</span></p>
     </div>
@@ -1114,6 +1114,14 @@ function saveRecipe() {
   renderTabs(); renderGrid();
   showToast(editingId ? 'Recipe Updated' : 'Recipe Added', 'Save your book to keep changes.');
   editingId = null;
+  
+  // Auto-sync to GitHub if configured
+  const ghUsername = localStorage.getItem('gh_username');
+  const ghRepo = localStorage.getItem('gh_repo');
+  const ghToken = localStorage.getItem('gh_token');
+  if (ghUsername && ghRepo && ghToken) {
+    autoSyncToGithub();
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -1487,12 +1495,106 @@ async function pullFromGithub() {
   document.getElementById('pullBtn').disabled = false;
 }
 
+// Auto-sync version of pushToGithub (silent, no UI updates)
+async function autoSyncToGithub() {
+  const username = localStorage.getItem('gh_username');
+  const repo = localStorage.getItem('gh_repo');
+  const token = localStorage.getItem('gh_token');
+  
+  if (!username || !repo || !token) return;
+  
+  try {
+    const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
+    let sha = null;
+    
+    try {
+      const getRes = await fetch(getUrl, {
+        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+raw' }
+      });
+      if (getRes.ok) {
+        const data = await getRes.json();
+        sha = data.sha;
+      }
+    } catch (e) {
+      // File doesn't exist yet
+    }
+    
+    const html = document.documentElement.outerHTML
+      .replace(/let recipes = \[[\s\S]*?\];\n\nlet categories/, `let recipes = ${JSON.stringify(recipes, null, 2)};\n\nlet categories`)
+      .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
+    
+    const content = btoa(unescape(encodeURIComponent(html)));
+    
+    await fetch(getUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Auto-sync: Updated recipe book - ${new Date().toLocaleString()}`,
+        content: content,
+        ...(sha && { sha })
+      })
+    });
+    
+    localStorage.setItem('lastSyncTime', new Date().toISOString());
+  } catch (e) {
+    // Silent fail for auto-sync
+    console.log('Auto-sync failed:', e.message);
+  }
+}
+
+// Auto-pull from GitHub on page load
+async function autoLoadFromGithub() {
+  const username = localStorage.getItem('gh_username');
+  const repo = localStorage.getItem('gh_repo');
+  const token = localStorage.getItem('gh_token');
+  
+  if (!username || !repo || !token) return;
+  
+  try {
+    const url = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' }
+    });
+    
+    if (!res.ok) return;
+    
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const scripts = doc.getElementsByTagName('script');
+    
+    let recipesMatch, categoriesMatch;
+    for (let script of scripts) {
+      if (script.textContent.includes('let recipes = ')) {
+        recipesMatch = script.textContent.match(/let recipes = (\[[\s\S]*?\]);/);
+        categoriesMatch = script.textContent.match(/let categories = (\[[\s\S]*?\]);/);
+        break;
+      }
+    }
+    
+    if (recipesMatch && categoriesMatch) {
+      recipes = JSON.parse(recipesMatch[1]);
+      categories = JSON.parse(categoriesMatch[1]);
+      renderTabs();
+      renderGrid();
+      renderShoppingPanel();
+    }
+  } catch (e) {
+    // Silent fail for auto-load
+    console.log('Auto-load failed:', e.message);
+  }
+}
+
 // ─────────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────────
 renderTabs();
 renderGrid();
 renderShoppingPanel();
+autoLoadFromGithub();
 </script>
 
 
