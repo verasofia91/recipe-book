@@ -1304,14 +1304,19 @@ async function manualPushToGithub() {
     return;
   }
   
-  console.log('Starting manual push...');
-  alert('Pushing recipes to GitHub... This may take a moment.');
+  console.log('=== MANUAL PUSH DEBUG INFO ===');
+  console.log('Username:', username);
+  console.log('Repo:', repo);
+  console.log('Token:', token.substring(0, 10) + '...');
+  
+  alert('Testing GitHub connection...\n\nCheck the browser console (F12) for detailed information.');
   
   try {
-    // Step 1: Get the SHA of the existing file
     const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/index.html`;
     
-    console.log('Step 1: Fetching current file SHA from:', getUrl);
+    console.log('URL:', getUrl);
+    console.log('\nStep 1: Testing connection...');
+    
     const getRes = await fetch(getUrl, {
       headers: { 
         'Authorization': `token ${token}`,
@@ -1319,43 +1324,65 @@ async function manualPushToGithub() {
       }
     });
     
-    let sha = null;
+    console.log('Response status:', getRes.status);
+    console.log('Response headers:', {
+      'content-type': getRes.headers.get('content-type'),
+      'x-ratelimit-remaining': getRes.headers.get('x-ratelimit-remaining'),
+      'x-ratelimit-limit': getRes.headers.get('x-ratelimit-limit')
+    });
     
-    if (getRes.ok) {
-      const fileData = await getRes.json();
-      sha = fileData.sha;
-      console.log('Step 1: Got SHA:', sha);
-    } else if (getRes.status === 404) {
-      console.log('Step 1: File does not exist, will create new');
-    } else {
-      const errData = await getRes.json();
-      console.log('Step 1 error:', errData);
-      alert('Error: Could not access GitHub file. Check your token and repo name.\n\nError: ' + errData.message);
+    const responseText = await getRes.text();
+    console.log('Response text (first 500 chars):', responseText.substring(0, 500));
+    
+    // Try to parse as JSON
+    let fileData = null;
+    try {
+      fileData = JSON.parse(responseText);
+      console.log('Parsed JSON successfully:', fileData);
+    } catch (e) {
+      console.log('Failed to parse as JSON:', e.message);
+      console.log('Response looks like:', responseText.substring(0, 100));
+    }
+    
+    // Check the status and decide what to do
+    if (getRes.status === 401) {
+      alert('❌ ERROR: Invalid GitHub token!\n\nYour token is wrong or expired.\n\n✓ Go to GitHub Settings > Developer Settings > Personal Access Tokens\n✓ Create a NEW token\n✓ Copy it\n✓ Click ⚙ Sync again and enter the new token');
       return;
     }
     
-    // Step 2: Prepare content
-    console.log('Step 2: Preparing content...');
+    if (getRes.status === 404) {
+      alert('❌ ERROR: Repository not found!\n\nCheck that your username and repo name are correct.\n\nExample:\n- Username: verasofia91\n- Repo: recipe-book');
+      return;
+    }
+    
+    if (!getRes.ok) {
+      if (fileData && fileData.message) {
+        alert('❌ ERROR from GitHub:\n\n' + fileData.message);
+      } else {
+        alert('❌ ERROR: GitHub returned status ' + getRes.status);
+      }
+      return;
+    }
+    
+    // If we got here, file exists and we have the SHA
+    let sha = fileData.sha;
+    console.log('Got SHA:', sha);
+    
+    // Now push
+    console.log('\nStep 2: Preparing content...');
     const html = document.documentElement.outerHTML
       .replace(/let recipes = \[[\s\S]*?\];\n\nlet categories/, `let recipes = ${JSON.stringify(recipes, null, 2)};\n\nlet categories`)
       .replace(/let categories = \[[\s\S]*?\];\n\nlet nextId/, `let categories = ${JSON.stringify(categories)};\n\nlet nextId`);
     
     const content = btoa(unescape(encodeURIComponent(html)));
-    console.log('Step 2: Content encoded, size:', content.length);
+    console.log('Content size:', content.length, 'bytes');
     
-    // Step 3: Push to GitHub
-    console.log('Step 3: Pushing to GitHub...');
+    console.log('\nStep 3: Pushing to GitHub...');
     const body = {
       message: `Updated recipe book - ${new Date().toLocaleString()}`,
-      content: content
+      content: content,
+      sha: sha
     };
-    
-    if (sha) {
-      body.sha = sha;
-      console.log('Step 3: Adding SHA to update request');
-    } else {
-      console.log('Step 3: Creating new file (no SHA)');
-    }
     
     const pushRes = await fetch(getUrl, {
       method: 'PUT',
@@ -1366,21 +1393,26 @@ async function manualPushToGithub() {
       body: JSON.stringify(body)
     });
     
-    console.log('Step 3: Push response status:', pushRes.status);
+    console.log('Push response status:', pushRes.status);
+    const pushText = await pushRes.text();
+    console.log('Push response:', pushText.substring(0, 500));
     
     if (pushRes.ok) {
       localStorage.setItem('lastSyncTime', new Date().toISOString());
-      console.log('✓ Successfully pushed to GitHub');
+      console.log('✓ SUCCESS');
       alert('✓ Success!\n\nYour recipes have been pushed to GitHub.');
     } else {
-      const errData = await pushRes.json();
-      console.log('Push error response:', errData);
-      alert('Push failed:\n\n' + errData.message);
+      try {
+        const pushData = JSON.parse(pushText);
+        alert('❌ Push failed:\n\n' + pushData.message);
+      } catch (e) {
+        alert('❌ Push failed with status ' + pushRes.status);
+      }
     }
     
   } catch (e) {
-    console.log('Manual push error:', e);
-    alert('Error: ' + e.message);
+    console.log('ERROR:', e);
+    alert('❌ Error:\n\n' + e.message + '\n\nCheck the browser console (F12) for details.');
   }
 }
 
